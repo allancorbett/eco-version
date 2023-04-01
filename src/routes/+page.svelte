@@ -1,12 +1,21 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  async function fetchEcoTimeEntries() {
+  async function getPackage() {
     const packageName = "@intelligentgrowthsolutions/eco";
     const url = `https://registry.npmjs.org/${packageName}`;
     const response = await fetch(url);
     const json = await response.json();
-    const timeEntries = Object.entries(json.time)
+    return json;
+  }
+
+  let latest: any;
+  function getLatestVersion() {
+    return (latest = packageFromNpm["dist-tags"].latest);
+  }
+
+  function fetchEcoTimeEntries() {
+    const timeEntries = Object.entries(packageFromNpm.time)
       .filter(([key]) => key !== "created" && key !== "modified")
       .sort(([, a], [, b]) => b.localeCompare(a))
       .slice(0, 25)
@@ -18,10 +27,8 @@
     return timeEntries;
   }
 
-  /**
-   * @type {any[]}
-   */
   let timeEntries: any[] = [];
+  let packageFromNpm: any;
   let isLoading = true;
 
   /**
@@ -42,6 +49,7 @@
    * @param {{ target: any; }} event
    */
   function handleClick(event: { target: any }) {
+    console.log("handleClick");
     const target = event.target;
     const textToCopy = target.dataset.copy;
     if (textToCopy) {
@@ -50,16 +58,17 @@
       toast.setAttribute("type", "success");
       toast.setAttribute("auto-dismiss", "");
       toast.setAttribute("icon", "check");
-      toast.innerHTML = `Copied command to clipboard!</br>
-      <small><code>${textToCopy}</code></small>`;
+      toast.innerHTML = `Copied <strong><code>${textToCopy}</code></strong> to clipboard!
+      `;
       document
         .querySelector("eco-toast-rack")
         ?.insertAdjacentElement("afterbegin", toast);
     }
   }
-
   onMount(async () => {
-    timeEntries = await fetchEcoTimeEntries();
+    packageFromNpm = await getPackage();
+    timeEntries = fetchEcoTimeEntries();
+    latest = getLatestVersion();
     isLoading = false;
   });
 </script>
@@ -74,48 +83,99 @@
   <eco-spinner />
 {:else}
   <eco-layout-body>
-    <eco-toast-rack stack="false">
-      <!-- {#if showToast}
-        <eco-toast type="success" dismissAfter={duration} auto-dismiss>
-          Copied!
-        </eco-toast>
-      {/if} -->
-    </eco-toast-rack>
+    <eco-toast-rack stack="false" />
     <eco-layout-nav slot="layout-nav" app-name="Eco Version Fetcher" />
-    <eco-spacer gap="xxxl">
-      {#each timeEntries as { key, formattedDate }}
-        <eco-card sticky>
-          <eco-spacer gap="xs" slot="header">
-            <eco-text-heading level="3">{key}</eco-text-heading>
-            <eco-text-heading level="6">
-              Published {formattedDate}
-            </eco-text-heading>
-          </eco-spacer>
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <eco-description-group
-            vertical
-            flow="h-ltr"
-            term-width="20ch"
-            on:click={handleClick}
-          >
-            <eco-description
-              term="eco and eco-angular"
-              description="npm install @intelligentgrowthsolutions/eco@{key} @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
-              data-copy="npm install @intelligentgrowthsolutions/eco@{key} @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
-            />
-            <eco-description
-              term="eco"
-              description="npm install @intelligentgrowthsolutions/eco@{key} --save --save-exact  --legacy-peer-deps"
-              data-copy="npm install @intelligentgrowthsolutions/eco@{key} --save --save-exact  --legacy-peer-deps"
-            />
-            <eco-description
-              term="eco-angular"
-              description="npm install @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
-              data-copy="npm install @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
-            />
-          </eco-description-group>
+    <eco-layout-aside sticky>
+      <eco-messagebox slot="layout-aside" type="info" icon="info">
+        <p>
+          Click on <code>eco + eco-angular</code> to copy the the npm
+          installation command to your clipboard for both eco and eco-angular.
+          You can also copy the installation command for <code>eco</code> or
+          <code>eco-angular</code> individually.
+        </p>
+      </eco-messagebox>
+
+      <eco-spacer gap="xl">
+        <eco-card>
+          <eco-layout-header slot="header" style="flex: 1">
+            <eco-spacer gap="xs">
+              <eco-text-heading level="3">
+                <span class="latest"
+                  >{latest} <eco-badge label="Stable release" /></span
+                >
+              </eco-text-heading>
+            </eco-spacer>
+            <eco-segments slot="actions-after" on:click={handleClick}>
+              <eco-segment
+                type="default"
+                data-copy="npm install @intelligentgrowthsolutions/eco@{latest} @intelligentgrowthsolutions/eco-angular@{latest} --save --save-exact  --legacy-peer-deps"
+              >
+                eco + eco-angular
+              </eco-segment>
+              <eco-segment
+                data-copy="npm install @intelligentgrowthsolutions/eco@{latest} --save --save-exact  --legacy-peer-deps"
+              >
+                eco
+              </eco-segment>
+              <eco-segment
+                data-copy="npm install @intelligentgrowthsolutions/eco-angular@{latest} --save --save-exact  --legacy-peer-deps"
+              >
+                eco-angular
+              </eco-segment>
+            </eco-segments>
+          </eco-layout-header>
+          <eco-accordion>
+            {#each timeEntries as { key, formattedDate }}
+              <eco-accordion-item collapsable="false">
+                <eco-layout-header slot="header">
+                  <eco-spacer gap="xs">
+                    <eco-text-heading level="5">{key} </eco-text-heading>
+                    <eco-text-input-help>
+                      Published {formattedDate}
+                    </eco-text-input-help>
+                  </eco-spacer>
+                  <eco-segments
+                    class="old"
+                    slot="actions-after"
+                    on:click={handleClick}
+                  >
+                    <eco-segment
+                      type="default"
+                      data-copy="npm install @intelligentgrowthsolutions/eco@{key} @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
+                    >
+                      eco + eco-angular
+                    </eco-segment>
+                    <eco-segment
+                      data-copy="npm install @intelligentgrowthsolutions/eco@{key} --save --save-exact  --legacy-peer-deps"
+                    >
+                      eco
+                    </eco-segment>
+                    <eco-segment
+                      data-copy="npm install @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
+                    >
+                      eco-angular
+                    </eco-segment>
+                  </eco-segments>
+                </eco-layout-header>
+              </eco-accordion-item>
+            {/each}
+          </eco-accordion>
         </eco-card>
-      {/each}
-    </eco-spacer>
+      </eco-spacer>
+    </eco-layout-aside>
   </eco-layout-body>
 {/if}
+
+<style>
+  eco-text-input-help {
+    font-weight: var(--fw-base);
+  }
+  .old eco-segment {
+    font-size: var(--fs-sm);
+  }
+  .latest {
+    display: flex;
+    gap: var(--sp-sm);
+    align-items: center;
+  }
+</style>
