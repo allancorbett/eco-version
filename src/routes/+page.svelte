@@ -74,9 +74,14 @@
 </script>
 
 <svelte:head>
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"
+  />
   <link rel="stylesheet" href="https://eco.app.igs.farm/dist/eco.css" />
   <script type="module" src="https://eco.app.igs.farm/dist/eco.esm.js"></script>
   <script nomodule src="https://eco.app.igs.farm/dist/index.esm.js"></script>
+  <title>Eco v{latest}</title>
 </svelte:head>
 
 {#if isLoading}
@@ -88,16 +93,16 @@
     <eco-layout-aside sticky>
       <eco-messagebox slot="layout-aside" type="info" icon="info">
         <p>
-          Click on <code>eco + eco-angular</code> to copy the the npm
-          installation command to your clipboard for both eco and eco-angular.
-          You can also copy the installation command for <code>eco</code> or
+          Click on <code>eco + eco-angular</code> to copy the npm installation
+          command to your clipboard for both eco and eco-angular. You can also
+          copy the installation command for <code>eco</code> or
           <code>eco-angular</code> individually.
         </p>
       </eco-messagebox>
 
       <eco-spacer gap="xl">
         <eco-card>
-          <eco-layout-header slot="header" style="flex: 1">
+          <eco-layout-header slot="header" class="latest-wrapper">
             <eco-spacer gap="xs">
               <eco-text-heading level="3">
                 <span class="latest"
@@ -105,24 +110,27 @@
                 >
               </eco-text-heading>
             </eco-spacer>
-            <eco-segments slot="actions-after" on:click={handleClick}>
-              <eco-segment
-                type="default"
+            <span
+              class="options latest"
+              slot="actions-after"
+              on:click={handleClick}
+            >
+              <span
                 data-copy="npm install @intelligentgrowthsolutions/eco@{latest} @intelligentgrowthsolutions/eco-angular@{latest} --save --save-exact  --legacy-peer-deps"
               >
                 eco + eco-angular
-              </eco-segment>
-              <eco-segment
+              </span>
+              <span
                 data-copy="npm install @intelligentgrowthsolutions/eco@{latest} --save --save-exact  --legacy-peer-deps"
               >
                 eco
-              </eco-segment>
-              <eco-segment
+              </span>
+              <span
                 data-copy="npm install @intelligentgrowthsolutions/eco-angular@{latest} --save --save-exact  --legacy-peer-deps"
               >
                 eco-angular
-              </eco-segment>
-            </eco-segments>
+              </span>
+            </span>
           </eco-layout-header>
           <eco-accordion>
             {#each timeEntries as { key, formattedDate }}
@@ -134,28 +142,27 @@
                       Published {formattedDate}
                     </eco-text-input-help>
                   </eco-spacer>
-                  <eco-segments
-                    class="old"
+                  <span
+                    class="options old"
                     slot="actions-after"
                     on:click={handleClick}
                   >
-                    <eco-segment
-                      type="default"
+                    <span
                       data-copy="npm install @intelligentgrowthsolutions/eco@{key} @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
                     >
                       eco + eco-angular
-                    </eco-segment>
-                    <eco-segment
+                    </span>
+                    <span
                       data-copy="npm install @intelligentgrowthsolutions/eco@{key} --save --save-exact  --legacy-peer-deps"
                     >
                       eco
-                    </eco-segment>
-                    <eco-segment
+                    </span>
+                    <span
                       data-copy="npm install @intelligentgrowthsolutions/eco-angular@{key} --save --save-exact  --legacy-peer-deps"
                     >
                       eco-angular
-                    </eco-segment>
-                  </eco-segments>
+                    </span>
+                  </span>
                 </eco-layout-header>
               </eco-accordion-item>
             {/each}
@@ -170,12 +177,34 @@
   eco-text-input-help {
     font-weight: var(--fw-base);
   }
-  .old eco-segment {
+  .old {
     font-size: var(--fs-sm);
+  }
+  .options {
+    font-weight: var(--fw-bold);
+    display: flex;
+    color: var(--c-cta-default);
+    cursor: pointer;
+    gap: var(--sp-xs);
+  }
+  .options span {
+    transition: all var(--speed-slow) ease-in-out;
+    padding: var(--sp-sm);
+    border-radius: var(--br-round);
+    border: var(--bw-thin) solid transparent;
+  }
+  .options span:hover {
+    box-shadow: var(--box-shadow-inset);
+    border-color: var(--c-cta-default);
   }
   .latest {
     display: flex;
     gap: var(--sp-sm);
     align-items: center;
+  }
+  .latest-wrapper {
+    flex: 1;
+    padding-inline: var(--sp-md);
+    padding-block: var(--sp-xxl);
   }
 </style>
